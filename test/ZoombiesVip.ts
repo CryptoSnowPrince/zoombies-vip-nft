@@ -9,12 +9,12 @@ describe("ZoombiesVIP", function () {
   // and reset Hardhat Network to that snapshot in every test.
   async function deployZoombiesVIPCollection() {
     // Contracts are deployed using the first signer/account by default
-    const [owner, otherAccount] = await ethers.getSigners();
+    const [owner, bob, alice] = await ethers.getSigners();
 
     const ZoombiesVip = await ethers.getContractFactory("ZoombiesVIP");
     const zoombies_vip = await ZoombiesVip.deploy();
 
-    return { zoombies_vip,  owner, otherAccount };
+    return { zoombies_vip,  owner, bob, alice };
   }
 
   describe("Award token", function () {
@@ -26,17 +26,35 @@ describe("ZoombiesVIP", function () {
     });
 
     it("Award VIP token from owner" ,async function () {
-      const { zoombies_vip,  owner, otherAccount } = await loadFixture(deployZoombiesVIPCollection);
+      const { zoombies_vip,  owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
       
       await expect(await zoombies_vip.name()).to.equal(
-               "Zoombies VIP"
+        "Zoombies VIP"
       );
       await expect(await zoombies_vip.symbol()).to.equal(
         "ZVIP"
       );
       
-      //console.log(await zoombies_vip.award(otherAccount.address));
+      await expect(await zoombies_vip.balanceOf(bob.address)).to.equal(
+        0
+      );
+      //await zoombies_vip.award(otherAccount.address); //mint a token
+      await expect(zoombies_vip.award(bob.address))
+      .to.emit(zoombies_vip, "Awarded")
+      .withArgs(bob.address, "0"); //first token is tokenId = 0
+      
+      await expect(await zoombies_vip.balanceOf(bob.address)).to.equal(
+        1
+      );
 
+      await expect(zoombies_vip.award(alice.address))
+      .to.emit(zoombies_vip, "Awarded")
+      .withArgs(alice.address, "1");
+
+      await expect(await zoombies_vip.balanceOf(alice.address)).to.equal(
+        1
+      );
+      
 
       //console.log(await zoombies_vip.balanceOf(otherAccount.address));
       // await expect(zoombies_vip.buy(owner, "foo"))
