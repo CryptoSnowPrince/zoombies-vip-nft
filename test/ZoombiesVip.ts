@@ -17,7 +17,7 @@ describe("ZoombiesVIP", function () {
     return { zoombies_vip,  owner, bob, alice };
   }
 
-  describe("Award token", function () {
+  describe("Test token owner, name and symbol ", function () {
 
     it("Should set the right owner", async function () {
            const { zoombies_vip, owner } = await loadFixture(deployZoombiesVIPCollection);
@@ -25,15 +25,23 @@ describe("ZoombiesVIP", function () {
            expect(await zoombies_vip.owner()).to.equal(owner.address);
     });
 
-    it("Award VIP token from owner" ,async function () {
+    it("Should set the right name - Zoombies VIP", async function () {
+      const { zoombies_vip, owner } = await loadFixture(deployZoombiesVIPCollection);
+
+      expect(await zoombies_vip.name()).to.equal("Zoombies VIP");
+    }); 
+
+    it("Should set the right symbol - ZVIP", async function () {
+      const { zoombies_vip, owner } = await loadFixture(deployZoombiesVIPCollection);
+  
+      expect(await zoombies_vip.symbol()).to.equal("ZVIP");
+    });
+  });
+
+  describe("Award token", function () {
+
+    it("Award 2 VIP tokens from owner to bob and alice" ,async function () {
       const { zoombies_vip,  owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
-      
-      await expect(await zoombies_vip.name()).to.equal(
-        "Zoombies VIP"
-      );
-      await expect(await zoombies_vip.symbol()).to.equal(
-        "ZVIP"
-      );
       
       await expect(await zoombies_vip.balanceOf(bob.address)).to.equal(
         0
@@ -54,15 +62,6 @@ describe("ZoombiesVIP", function () {
       await expect(await zoombies_vip.balanceOf(alice.address)).to.equal(
         1
       );
-      
-
-      //console.log(await zoombies_vip.balanceOf(otherAccount.address));
-      // await expect(zoombies_vip.buy(owner, "foo"))
-      // .to.emit(eventEmitter, "MyEventWithData")
-      // .withArgs(42, "foo");
-
-      //console.log(owner);
-      //console.log(otherAccount);
     })
   })
 
