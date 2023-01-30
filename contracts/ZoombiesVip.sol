@@ -39,7 +39,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
         return "https://";
     }
 
-    function safeMint(address to, string memory uri) public onlyOwner returns(uint256) {
+    function safeMint(address to, string memory uri) internal returns(uint256) {
         uint256 tokenId = _tokenIdCounter.current();
         _tokenIdCounter.increment();
         _safeMint(to, tokenId);
@@ -82,9 +82,9 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
 
     // Events
     event Buy(address indexed owner, uint256 indexed tokenId);
-    event Revoked(address indexed owner, uint256 indexed tokenId);
     event Upgraded(address indexed owner, uint256 indexed tokenId);
     event Awarded(address indexed owner, uint256 indexed tokenId);
+    event Revoked(address indexed owner, uint256 indexed tokenId);
 
     // Functions
     function lock(uint256 tokenId) public onlyOwner {
@@ -104,6 +104,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
         // mint a new NFT and transfer to recipient
         uint256 tokenId = safeMint(recipient, "test");
         emit Buy(msg.sender, tokenId);
+        this.lock(tokenId);
     }
 
     function upgrade(uint256 tokenId) public payable {
