@@ -40,13 +40,21 @@ describe("ZoombiesVIP", function () {
 
   describe("Award token", function () {
 
-    it("Award 2 VIP tokens from owner to bob and alice" ,async function () {
+    it("Decline Award VIP from not owner" ,async function () {
       const { zoombies_vip,  owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
       
+      await expect(zoombies_vip.connect(bob).award(owner.address)).to.be.revertedWith(
+        "Ownable: caller is not the owner"
+      );
+      });
+
+    it("Award 2 VIP tokens from owner to bob and alice" ,async function () {
+      const { zoombies_vip,  owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
+
       await expect(await zoombies_vip.balanceOf(bob.address)).to.equal(
         0
       );
-      //await zoombies_vip.award(otherAccount.address); //mint a token
+    
       await expect(zoombies_vip.award(bob.address))
       .to.emit(zoombies_vip, "Awarded")
       .withArgs(bob.address, "0"); //first token is tokenId = 0
