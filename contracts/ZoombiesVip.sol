@@ -70,24 +70,32 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
     }
 
     /* our custom stuff */
+    enum viptypes{ VIP, GOLD, DIAMOND }
+    viptypes currentVIPType = viptypes.VIP;
 
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == type(IERC5192).interfaceId || super.supportsInterface(interfaceId);
     }
 
     // Variables
+    mapping (address => viptypes) private _tokentotype; //VIP level of the owner
     mapping (uint256 => bool) private _tokenLocked;
     mapping (address => bool) private _revoked; // keeps track of revoked NFTs
     mapping (address => uint256) private _upgraded; // keeps track of upgraded NFTs
 
     // Events
-    event Buy(address indexed owner, uint256 indexed tokenId);
+    event Buy(address indexed owner, uint256 indexed tokenId, uint8 tokenType);
     event Upgraded(address indexed owner, uint256 indexed tokenId);
-    event Awarded(address indexed owner, uint256 indexed tokenId);
+    event Awarded(address indexed owner, uint256 indexed tokenId, uint8 tokenType);
     event Revoked(address indexed owner, uint256 indexed tokenId);
 
     // Functions
-    function lock(uint256 tokenId) public onlyOwner {
+
+    function getVipStatus(address owner) public view returns (viptypes tokenType) {
+        return _tokentotype[owner];
+    }
+
+    function lock(uint256 tokenId) internal {
         _tokenLocked[tokenId] = true;
         emit Locked(tokenId);
     }
@@ -97,14 +105,16 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
         emit Unlocked(tokenId);
     }
 
-    function buy(address recipient) public payable {
+    function buy(address recipient, viptypes _tokenType) public payable {
         // require sufficient funds
         require(msg.value >= price(), "Insufficient funds");
+        require(_tokenType == viptypes.GOLD || _tokenType == viptypes.VIP, "Wrong types");
 
         // mint a new NFT and transfer to recipient
         uint256 tokenId = safeMint(recipient, "test");
-        emit Buy(msg.sender, tokenId);
-        this.lock(tokenId);
+        _tokentotype[recipient] = _tokenType;
+        emit Buy(recipient, tokenId, uint8(currentVIPType));
+        lock(tokenId);
     }
 
     function upgrade(uint256 tokenId) public payable {
@@ -119,11 +129,15 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
         emit Upgraded(msg.sender, tokenId);
     }
 
-    function award(address recipient) public onlyOwner{
-        // transfer NFT to recipient
+    // tokenType - GOLD = 1, VIP = 2
+    function award(address recipient, viptypes _tokenType) public onlyOwner{
+        require(_tokenType >= viptypes.VIP && _tokenType <= viptypes.DIAMOND, "Wrong types");
+
         // mint a new NFT and transfer to recipient
-        uint256 tokenId = safeMint(recipient, "test");
-        emit Awarded(recipient, tokenId);
+        uint256 tokenId = safeMint(recipient, "Fix this ryan");
+        _tokentotype[recipient] = _tokenType;
+        emit Awarded(recipient, tokenId, uint8(_tokenType));
+        lock(tokenId);
     }
 
     function revoke(uint256 tokenId) public onlyOwner {

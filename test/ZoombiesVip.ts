@@ -38,34 +38,102 @@ describe("ZoombiesVIP", function () {
     });
   });
 
+  //TODO
+    //readonly
+  // price
+  // upgradeFee
+  // locked
+  // getVipStatus
+  // isRevoked
+  // isUpgraded
+
+  describe("Test readonly functions", function () {
+
+    it("Testing price", async function () {
+           const { zoombies_vip, owner } = await loadFixture(deployZoombiesVIPCollection);
+    
+           expect(await zoombies_vip.price()).to.equal("100000000000000000000");
+    });
+
+    it("Testing upgradeFee", async function () {
+      const { zoombies_vip, owner } = await loadFixture(deployZoombiesVIPCollection);
+
+      expect(await zoombies_vip.upgradeFee()).to.equal("50000000000000000000");
+    }); 
+
+    it("Testing locked", async function () {
+      const { zoombies_vip, owner, bob } = await loadFixture(deployZoombiesVIPCollection);
+      // No token there
+      expect(await zoombies_vip.locked(0)).to.equal(false);
+
+      // award a token
+      await expect(zoombies_vip.connect(owner).award(bob.address, 0))
+      .to.emit(zoombies_vip, "Awarded")
+      .withArgs(bob.address, 0, 0); //first token is tokenId = 0
+
+      expect(await zoombies_vip.locked(0)).to.equal(true);
+
+    });
+
+    it("Testing getVipStatus", async function () {
+      const { zoombies_vip, owner, bob } = await loadFixture(deployZoombiesVIPCollection);
+
+      //award a token
+      await expect(zoombies_vip.connect(owner).award(bob.address, 2))
+      .to.emit(zoombies_vip, "Awarded")
+      .withArgs(bob.address, 0, 2); //first token is tokenId = 0
+
+       expect(await zoombies_vip.getVipStatus(bob.address)).to.equal(2);
+    });
+
+    it("Testing isRevoked", async function () {
+    const { zoombies_vip, owner } = await loadFixture(deployZoombiesVIPCollection);
+
+    expect(await zoombies_vip.name()).to.equal("Zoombies VIP");
+    }); 
+
+    it("Testing isUpgraded", async function () {
+    const { zoombies_vip, owner } = await loadFixture(deployZoombiesVIPCollection);
+
+    expect(await zoombies_vip.symbol()).to.equal("ZVIP");
+    });
+  });
+
+    // functions
+  // buy
+  // lock
+  // unlock
+  // upgrade
+
+  // award
   describe("Award token", function () {
 
-    it("Decline Award VIP from not owner" ,async function () {
+    it("Decline Award VIP from not owner", async function () {
       const { zoombies_vip,  owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
       
-      await expect(zoombies_vip.connect(bob).award(owner.address)).to.be.revertedWith(
+      await expect(zoombies_vip.connect(bob).award(owner.address, 1)).to.be.revertedWith(
         "Ownable: caller is not the owner"
       );
-      });
+    });
 
-    it("Award 2 VIP tokens from owner to bob and alice" ,async function () {
+    it("Award 2 VIP tokens from owner to bob and alice", async function () {
       const { zoombies_vip,  owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
 
       await expect(await zoombies_vip.balanceOf(bob.address)).to.equal(
         0
       );
     
-      await expect(zoombies_vip.award(bob.address))
+      await expect(zoombies_vip.connect(owner).award(bob.address, 1))
       .to.emit(zoombies_vip, "Awarded")
-      .withArgs(bob.address, "0"); //first token is tokenId = 0
+      .withArgs(bob.address, 0, 1); //first token is tokenId = 0
       
       await expect(await zoombies_vip.balanceOf(bob.address)).to.equal(
         1
       );
 
-      await expect(zoombies_vip.award(alice.address))
+      await expect(zoombies_vip.connect(owner).award(alice.address, 1))
       .to.emit(zoombies_vip, "Awarded")
-      .withArgs(alice.address, "1");
+      .withArgs(alice.address, 1, 1);
 
       await expect(await zoombies_vip.balanceOf(alice.address)).to.equal(
         1
@@ -73,7 +141,9 @@ describe("ZoombiesVIP", function () {
     })
   })
 
-  //
+  // revoke
+  // withdraw
+
 
   // describe("Deployment", function () {
   //   it("Should set the right unlockTime", async function () {
