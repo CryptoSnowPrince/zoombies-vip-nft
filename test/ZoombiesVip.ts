@@ -61,7 +61,7 @@ describe("ZoombiesVIP", function () {
       expect(await zoombies_vip.upgradeFee()).to.equal("50000000000000000000");
     }); 
 
-    it("Testing locked", async function () {
+    it("Testing award token and locked state", async function () {
       const { zoombies_vip, owner, bob } = await loadFixture(deployZoombiesVIPCollection);
       // No token there
       expect(await zoombies_vip.locked(0)).to.equal(false);
@@ -86,7 +86,7 @@ describe("ZoombiesVIP", function () {
        expect(await zoombies_vip.getVipStatus(bob.address)).to.equal(2);
     });
 
-    it("Testing isRevoked", async function () {
+    it("Testing Revoke and isRevoked", async function () {
       const { zoombies_vip, owner, bob } = await loadFixture(deployZoombiesVIPCollection);
 
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
@@ -106,10 +106,27 @@ describe("ZoombiesVIP", function () {
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
     });
 
-    it("Testing isUpgraded", async function () {
-    const { zoombies_vip, owner } = await loadFixture(deployZoombiesVIPCollection);
+    it("Testing upgrade and isUpgraded", async function () {
+      const { zoombies_vip, owner, bob } = await loadFixture(deployZoombiesVIPCollection);
 
-    expect(await zoombies_vip.symbol()).to.equal("ZVIP");
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      
+      // Fail with no money
+      await expect(zoombies_vip.connect(bob).upgrade(1)).to.be.revertedWith(
+        "Insufficient funds for upgrade"
+      );
+
+
+      //award a token
+      await expect(zoombies_vip.connect(owner).award(bob.address, 1)) //VIP token
+      .to.emit(zoombies_vip, "Awarded")
+      .withArgs(bob.address, 0, 1); //first token is tokenId = 0
+
+      // Fail trying to upgrade past DIAMOND
+      await expect(zoombies_vip.connect(bob).upgrade(1)).to.be.revertedWith(
+        "Insufficient funds for upgrade"
+      );
+
     });
   });
 
@@ -119,7 +136,6 @@ describe("ZoombiesVIP", function () {
   // unlock
   // upgrade
 
-  // award
   describe("Award token", function () {
 
     it("Decline Award VIP from not owner", async function () {
@@ -155,7 +171,6 @@ describe("ZoombiesVIP", function () {
     })
   })
 
-  // revoke
   // withdraw
 
 

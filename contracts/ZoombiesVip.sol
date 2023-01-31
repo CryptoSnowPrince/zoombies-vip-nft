@@ -70,8 +70,8 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
     }
 
     /* our custom stuff */
+
     enum viptypes{ NONE, VIP, GOLD, DIAMOND }
-    viptypes currentVIPType = viptypes.VIP;
 
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
         return interfaceId == type(IERC5192).interfaceId || super.supportsInterface(interfaceId);
@@ -85,7 +85,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
 
     // Events
     event Buy(address indexed owner, uint256 indexed tokenId, uint8 tokenType);
-    event Upgraded(address indexed owner, uint256 indexed tokenId);
+    event Upgraded(address indexed owner, uint256 indexed tokenId, uint8 tokenType);
     event Awarded(address indexed owner, uint256 indexed tokenId, uint8 tokenType);
     event Revoked(address indexed owner, uint256 indexed tokenId);
 
@@ -113,23 +113,34 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
         // mint a new NFT and transfer to recipient
         uint256 tokenId = safeMint(recipient, "test");
         _vipStatusToOwner[recipient] = _tokenType;
-        emit Buy(recipient, tokenId, uint8(currentVIPType));
+        emit Buy(recipient, tokenId, uint8(_tokenType));
         lock(tokenId);
     }
 
+    error notEnoughFunds(string reason);
+    error maxVIPLevel();
+
     function upgrade(uint256 tokenId) public payable {
         // require ownership of NFT
-        require(_isApprovedOrOwner(msg.sender, tokenId), "Sender does not own NFT");
+        //require(_isApprovedOrOwner(msg.sender, tokenId), "Sender does not own NFT");
 
+        //Can't upgrade DIAMOND
+        address owner = _ownerOf(tokenId);
+        if(_vipStatusToOwner[owner] < viptypes.DIAMOND){
+            revert maxVIPLevel();
+        }
         // require payment of upgrade fee
-        require(msg.value >= upgradeFee(), "Insufficient funds for upgrade");
+        if(msg.value <= upgradeFee()) {
+            revert notEnoughFunds("Insufficient funds for upgrade");
+        }
 
         // upgrade NFT
-        _upgraded[msg.sender] = tokenId;
-        emit Upgraded(msg.sender, tokenId);
+        _vipStatusToOwner[owner] = viptypes(uint8(getVipStatus(owner)) + 1);//viptypes(uint(_vipStatusToOwner[owner])+1);
+        _upgraded[owner] = tokenId;
+        emit Upgraded(owner, tokenId, uint8(_vipStatusToOwner[owner]));
     }
 
-    // tokenType - GOLD = 1, VIP = 2
+    // tokenType - VIP = 1, GOLD = 2, DIAMOND = 3
     function award(address recipient, viptypes _tokenType) public onlyOwner{
         require(_tokenType >= viptypes.VIP && _tokenType <= viptypes.DIAMOND, "Wrong types");
 
