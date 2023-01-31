@@ -70,7 +70,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
     }
 
     /* our custom stuff */
-    enum viptypes{ VIP, GOLD, DIAMOND }
+    enum viptypes{ NONE, VIP, GOLD, DIAMOND }
     viptypes currentVIPType = viptypes.VIP;
 
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
@@ -78,7 +78,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
     }
 
     // Variables
-    mapping (address => viptypes) private _tokentotype; //VIP level of the owner
+    mapping (address => viptypes) private _vipStatusToOwner; //VIP level of the owner
     mapping (uint256 => bool) private _tokenLocked;
     mapping (address => bool) private _revoked; // keeps track of revoked NFTs
     mapping (address => uint256) private _upgraded; // keeps track of upgraded NFTs
@@ -92,7 +92,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
     // Functions
 
     function getVipStatus(address owner) public view returns (viptypes tokenType) {
-        return _tokentotype[owner];
+        return _vipStatusToOwner[owner];
     }
 
     function lock(uint256 tokenId) internal {
@@ -112,7 +112,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
 
         // mint a new NFT and transfer to recipient
         uint256 tokenId = safeMint(recipient, "test");
-        _tokentotype[recipient] = _tokenType;
+        _vipStatusToOwner[recipient] = _tokenType;
         emit Buy(recipient, tokenId, uint8(currentVIPType));
         lock(tokenId);
     }
@@ -135,17 +135,21 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
 
         // mint a new NFT and transfer to recipient
         uint256 tokenId = safeMint(recipient, "Fix this ryan");
-        _tokentotype[recipient] = _tokenType;
+        _vipStatusToOwner[recipient] = _tokenType;
         emit Awarded(recipient, tokenId, uint8(_tokenType));
         lock(tokenId);
     }
 
     function revoke(uint256 tokenId) public onlyOwner {
         // get owner
+        address owner = _ownerOf(tokenId);
+        require(owner != address(0x0));
 
         // revoke NFT
-        _revoked[msg.sender] = true;
-        emit Revoked(msg.sender, tokenId);
+        _burn(tokenId);
+        _revoked[owner] = true;
+        _vipStatusToOwner[owner] = viptypes.NONE;
+        emit Revoked(owner, tokenId);
     }
 
     function locked(uint256 tokenId) public view returns (bool) {
