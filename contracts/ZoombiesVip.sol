@@ -126,7 +126,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
 
         //Can't upgrade DIAMOND
         address owner = _ownerOf(tokenId);
-        if(_vipStatusToOwner[owner] < viptypes.DIAMOND){
+        if(_vipStatusToOwner[owner] == viptypes.DIAMOND){
             revert maxVIPLevel();
         }
         // require payment of upgrade fee

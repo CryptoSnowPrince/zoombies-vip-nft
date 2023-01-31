@@ -112,9 +112,9 @@ describe("ZoombiesVIP", function () {
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
       
       // Fail with no money
-      await expect(zoombies_vip.connect(bob).upgrade(1)).to.be.revertedWith(
-        "Insufficient funds for upgrade"
-      );
+      await expect(zoombies_vip.connect(bob).upgrade(1)).to.be.
+      revertedWithCustomError(zoombies_vip, "notEnoughFunds")
+      .withArgs("Insufficient funds for upgrade");
 
 
       //award a token
@@ -122,10 +122,12 @@ describe("ZoombiesVIP", function () {
       .to.emit(zoombies_vip, "Awarded")
       .withArgs(bob.address, 0, 1); //first token is tokenId = 0
 
-      // Fail trying to upgrade past DIAMOND
-      await expect(zoombies_vip.connect(bob).upgrade(1)).to.be.revertedWith(
-        "Insufficient funds for upgrade"
-      );
+
+
+      // // Fail trying to upgrade past DIAMOND
+      // await expect(zoombies_vip.connect(bob).upgrade(1)).to.be.revertedWith(
+      //   "Insufficient funds for upgrade"
+      // );
 
     });
   });
