@@ -130,7 +130,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
             revert maxVIPLevel();
         }
         // require payment of upgrade fee
-        if(msg.value <= upgradeFee()) {
+        if(msg.value < upgradeFee()) {
             revert notEnoughFunds("Insufficient funds for upgrade");
         }
 
