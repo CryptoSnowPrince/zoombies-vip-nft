@@ -178,11 +178,38 @@ describe("ZoombiesVIP", function () {
       await expect(zoombies_vip.connect(bob)
       .buy(bob.address, 1, {value: "100000000000000000000"}))
       .to.emit(zoombies_vip, "Buy")
-      .withArgs(bob.address, 0, 1); //owner, tokenId, GOLD
+      .withArgs(bob.address, 0, 1); //owner, tokenId, VIP
    
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
     });
 
+    it("Buy Success - GOLD", async function () {
+      const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
+
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      
+      // Buy GOLD
+      await expect(zoombies_vip.connect(bob)
+      .buy(bob.address, 2, {value: "200000000000000000000"}))
+      .to.emit(zoombies_vip, "Buy")
+      .withArgs(bob.address, 0, 2); //owner, tokenId, GOLD
+   
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
+    });
+
+    it("Buy Success - DIAMOND", async function () {
+      const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
+
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      
+      // Buy GOLD
+      await expect(zoombies_vip.connect(bob)
+      .buy(bob.address, 3, {value: "300000000000000000000"}))
+      .to.emit(zoombies_vip, "Buy")
+      .withArgs(bob.address, 0, 3); //owner, tokenId, DIAMOND
+   
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
+    });    
       // //award a GOLD VIP
       // await expect(zoombies_vip.connect(owner).award(bob.address, 1)) //VIP token
       // .to.emit(zoombies_vip, "Awarded")

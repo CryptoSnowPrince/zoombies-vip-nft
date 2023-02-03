@@ -111,7 +111,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
 
     function buy(address recipient, viptypes _tokenType) public payable {
         //require sufficient funds
-        if(msg.value < price()) {
+        if(msg.value < (price() * uint256(_tokenType))) {
             revert notEnoughFunds("Insufficient funds");
         }
         
