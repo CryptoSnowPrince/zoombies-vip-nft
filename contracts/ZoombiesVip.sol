@@ -89,6 +89,10 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
     event Awarded(address indexed owner, uint256 indexed tokenId, uint8 tokenType);
     event Revoked(address indexed owner, uint256 indexed tokenId);
 
+    // Errors
+    error notEnoughFunds(string reason);
+    error maxVIPLevel();
+
     // Functions
 
     function getVipStatus(address owner) public view returns (viptypes tokenType) {
@@ -106,19 +110,21 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
     }
 
     function buy(address recipient, viptypes _tokenType) public payable {
-        // require sufficient funds
-        require(msg.value >= price(), "Insufficient funds");
-        require(_tokenType == viptypes.GOLD || _tokenType == viptypes.VIP, "Wrong types");
+        //require sufficient funds
+        if(msg.value < price()) {
+            revert notEnoughFunds("Insufficient funds");
+        }
+        
+        if(_tokenType <= viptypes.NONE || uint8(_tokenType) > uint8(viptypes.DIAMOND)) {
+            revert();
+        }
 
         // mint a new NFT and transfer to recipient
-        uint256 tokenId = safeMint(recipient, "test");
+        uint256 tokenId = safeMint(recipient, "SET this Ryan");
         _vipStatusToOwner[recipient] = _tokenType;
         emit Buy(recipient, tokenId, uint8(_tokenType));
         lock(tokenId);
     }
-
-    error notEnoughFunds(string reason);
-    error maxVIPLevel();
 
     function upgrade(uint256 tokenId) public payable {
         // require ownership of NFT
@@ -145,7 +151,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
         require(_tokenType >= viptypes.VIP && _tokenType <= viptypes.DIAMOND, "Wrong types");
 
         // mint a new NFT and transfer to recipient
-        uint256 tokenId = safeMint(recipient, "Fix this ryan");
+        uint256 tokenId = safeMint(recipient, "SET this ryan");
         _vipStatusToOwner[recipient] = _tokenType;
         emit Awarded(recipient, tokenId, uint8(_tokenType));
         lock(tokenId);

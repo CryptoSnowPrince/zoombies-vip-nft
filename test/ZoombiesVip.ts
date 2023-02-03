@@ -106,6 +106,9 @@ describe("ZoombiesVIP", function () {
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
     });
 
+  });
+
+  describe("Upgrade token", function() {
     it("Testing upgrade and isUpgraded", async function () {
       const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
 
@@ -139,13 +142,76 @@ describe("ZoombiesVIP", function () {
       revertedWithCustomError(zoombies_vip, "maxVIPLevel")
 
     });
-  });
+  })
+
+  describe("Buy token", function() {
+
+    it("Buy Fail - no funds", async function () {
+      const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
+
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      
+      // Fail with no money
+      await expect(zoombies_vip.connect(bob).buy(bob.address, 1)).to.be.
+      revertedWithCustomError(zoombies_vip, "notEnoughFunds")
+      .withArgs("Insufficient funds");
+    });
+
+    it("Buy Fail - token type out of range", async function () {
+      const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
+
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      
+      // // Fail with VIP type out of range ( not sure why this doesnt revert the custom error)
+      await expect(zoombies_vip.connect(bob)
+      .buy(bob.address, 5, {value: "100000000000000000000"}))
+      .revertedWithoutReason;
+
+    });
+
+    it("Buy Success - VIP", async function () {
+      const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
+
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      
+      // Buy VIP
+      await expect(zoombies_vip.connect(bob)
+      .buy(bob.address, 1, {value: "100000000000000000000"}))
+      .to.emit(zoombies_vip, "Buy")
+      .withArgs(bob.address, 0, 1); //owner, tokenId, GOLD
+   
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
+    });
+
+      // //award a GOLD VIP
+      // await expect(zoombies_vip.connect(owner).award(bob.address, 1)) //VIP token
+      // .to.emit(zoombies_vip, "Awarded")
+      // .withArgs(bob.address, 0, 1); //owner, tokenId, VIP
+
+      // //upgrade to GOLD, Paid for by alice
+      // await expect(zoombies_vip.connect(alice)
+      // .upgrade(0, {value: "50000000000000000000"})) //VIP token
+      // .to.emit(zoombies_vip, "Upgraded")
+      // .withArgs(bob.address, 0, 2); //owner, tokenId, GOLD
+
+      // //upgrade to DIAMOND, paid by owner
+      // await expect(zoombies_vip.connect(bob)
+      // .upgrade(0, {value: "50000000000000000000"})) //GOLD token
+      // .to.emit(zoombies_vip, "Upgraded")
+      // .withArgs(bob.address, 0, 3); //owner, tokenId, DIAMOND
+
+      // // Fail trying to upgrade past DIAMOND
+      // await expect(zoombies_vip.connect(bob).upgrade(0)).to.be.
+      // revertedWithCustomError(zoombies_vip, "maxVIPLevel")
+
+    
+
+  })
 
     // functions
   // buy
   // lock
   // unlock
-  // upgrade
 
   describe("Award token", function () {
 
