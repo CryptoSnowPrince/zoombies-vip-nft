@@ -179,7 +179,11 @@ describe("ZoombiesVIP", function () {
       .buy(bob.address, 1, {value: "100000000000000000000"}))
       .to.emit(zoombies_vip, "Buy")
       .withArgs(bob.address, 0, 1); //owner, tokenId, VIP
-   
+
+      //verify status
+      expect(await zoombies_vip.getVipStatus(bob.address)).to.equal(1);
+      
+      //verify balance
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
     });
 
@@ -193,7 +197,11 @@ describe("ZoombiesVIP", function () {
       .buy(bob.address, 2, {value: "200000000000000000000"}))
       .to.emit(zoombies_vip, "Buy")
       .withArgs(bob.address, 0, 2); //owner, tokenId, GOLD
-   
+
+      //verify status
+      expect(await zoombies_vip.getVipStatus(bob.address)).to.equal(2);
+      
+      // verify balance
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
     });
 
@@ -207,31 +215,13 @@ describe("ZoombiesVIP", function () {
       .buy(bob.address, 3, {value: "300000000000000000000"}))
       .to.emit(zoombies_vip, "Buy")
       .withArgs(bob.address, 0, 3); //owner, tokenId, DIAMOND
-   
+
+      //verify status
+      expect(await zoombies_vip.getVipStatus(bob.address)).to.equal(3);
+      
+      // verify balance
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
     });    
-      // //award a GOLD VIP
-      // await expect(zoombies_vip.connect(owner).award(bob.address, 1)) //VIP token
-      // .to.emit(zoombies_vip, "Awarded")
-      // .withArgs(bob.address, 0, 1); //owner, tokenId, VIP
-
-      // //upgrade to GOLD, Paid for by alice
-      // await expect(zoombies_vip.connect(alice)
-      // .upgrade(0, {value: "50000000000000000000"})) //VIP token
-      // .to.emit(zoombies_vip, "Upgraded")
-      // .withArgs(bob.address, 0, 2); //owner, tokenId, GOLD
-
-      // //upgrade to DIAMOND, paid by owner
-      // await expect(zoombies_vip.connect(bob)
-      // .upgrade(0, {value: "50000000000000000000"})) //GOLD token
-      // .to.emit(zoombies_vip, "Upgraded")
-      // .withArgs(bob.address, 0, 3); //owner, tokenId, DIAMOND
-
-      // // Fail trying to upgrade past DIAMOND
-      // await expect(zoombies_vip.connect(bob).upgrade(0)).to.be.
-      // revertedWithCustomError(zoombies_vip, "maxVIPLevel")
-
-    
 
   })
 
