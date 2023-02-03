@@ -109,7 +109,7 @@ describe("ZoombiesVIP", function () {
   });
 
   describe("Upgrade token", function() {
-    it("Testing upgrade and isUpgraded", async function () {
+    it("Upgrade Fail - Insufficient funds", async function () {
       const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
 
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
@@ -118,8 +118,13 @@ describe("ZoombiesVIP", function () {
       await expect(zoombies_vip.connect(bob).upgrade(1)).to.be.
       revertedWithCustomError(zoombies_vip, "notEnoughFunds")
       .withArgs("Insufficient funds for upgrade");
+    });
 
-
+    it("Upgrade Success - from VIP to DIAMOND", async function () {
+      const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
+  
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      
       //award a GOLD VIP
       await expect(zoombies_vip.connect(owner).award(bob.address, 1)) //VIP token
       .to.emit(zoombies_vip, "Awarded")
@@ -127,13 +132,13 @@ describe("ZoombiesVIP", function () {
 
       //upgrade to GOLD, Paid for by alice
       await expect(zoombies_vip.connect(alice)
-      .upgrade(0, {value: "50000000000000000000"})) //VIP token
+      .upgrade(0, {value: "100000000000000000000"})) //VIP token
       .to.emit(zoombies_vip, "Upgraded")
       .withArgs(bob.address, 0, 2); //owner, tokenId, GOLD
 
       //upgrade to DIAMOND, paid by owner
       await expect(zoombies_vip.connect(bob)
-      .upgrade(0, {value: "50000000000000000000"})) //GOLD token
+      .upgrade(0, {value: "150000000000000000000"})) //GOLD token
       .to.emit(zoombies_vip, "Upgraded")
       .withArgs(bob.address, 0, 3); //owner, tokenId, DIAMOND
 
@@ -183,6 +188,9 @@ describe("ZoombiesVIP", function () {
       //verify status
       expect(await zoombies_vip.getVipStatus(bob.address)).to.equal(1);
       
+      //verify locked
+      expect(await zoombies_vip.locked(0)).to.equal(true);
+
       //verify balance
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
     });
@@ -200,6 +208,9 @@ describe("ZoombiesVIP", function () {
 
       //verify status
       expect(await zoombies_vip.getVipStatus(bob.address)).to.equal(2);
+
+      //verify locked
+      expect(await zoombies_vip.locked(0)).to.equal(true);      
       
       // verify balance
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
@@ -218,6 +229,9 @@ describe("ZoombiesVIP", function () {
 
       //verify status
       expect(await zoombies_vip.getVipStatus(bob.address)).to.equal(3);
+
+      //verify locked
+      expect(await zoombies_vip.locked(0)).to.equal(true);      
       
       // verify balance
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
@@ -226,9 +240,8 @@ describe("ZoombiesVIP", function () {
   })
 
     // functions
-  // buy
-  // lock
   // unlock
+  // transfer
 
   describe("Award token", function () {
 
@@ -267,39 +280,6 @@ describe("ZoombiesVIP", function () {
 
   // withdraw
 
-
-  // describe("Deployment", function () {
-  //   it("Should set the right unlockTime", async function () {
-  //     const { lock, unlockTime } = await loadFixture(deployOneYearLockFixture);
-
-  //     expect(await lock.unlockTime()).to.equal(unlockTime);
-  //   });
-
-  //   it("Should set the right owner", async function () {
-  //     const { lock, owner } = await loadFixture(deployOneYearLockFixture);
-
-  //     expect(await lock.owner()).to.equal(owner.address);
-  //   });
-
-  //   it("Should receive and store the funds to lock", async function () {
-  //     const { lock, lockedAmount } = await loadFixture(
-  //       deployOneYearLockFixture
-  //     );
-
-  //     expect(await ethers.provider.getBalance(lock.address)).to.equal(
-  //       lockedAmount
-  //     );
-  //   });
-
-  //   it("Should fail if the unlockTime is not in the future", async function () {
-  //     // We don't use the fixture here because we want a different deployment
-  //     const latestTime = await time.latest();
-  //     const Lock = await ethers.getContractFactory("Lock");
-  //     await expect(Lock.deploy(latestTime, { value: 1 })).to.be.revertedWith(
-  //       "Unlock time should be in the future"
-  //     );
-  //   });
-  // });
 
   // describe("Withdrawals", function () {
   //   describe("Validations", function () {

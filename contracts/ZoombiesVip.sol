@@ -135,13 +135,16 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
         if(_vipStatusToOwner[owner] == viptypes.DIAMOND){
             revert maxVIPLevel();
         }
+
+        viptypes newLevel = viptypes(uint8(getVipStatus(owner)) + 1);
+
         // require payment of upgrade fee
-        if(msg.value < upgradeFee()) {
+        if(msg.value < upgradeFee() * uint256(newLevel)) {
             revert notEnoughFunds("Insufficient funds for upgrade");
         }
 
         // upgrade NFT
-        _vipStatusToOwner[owner] = viptypes(uint8(getVipStatus(owner)) + 1);//viptypes(uint(_vipStatusToOwner[owner])+1);
+        _vipStatusToOwner[owner] = newLevel;
         _upgraded[owner] = tokenId;
         emit Upgraded(owner, tokenId, uint8(_vipStatusToOwner[owner]));
     }
