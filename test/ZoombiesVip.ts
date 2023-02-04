@@ -221,7 +221,7 @@ describe("ZoombiesVIP", function () {
 
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
       
-      // Buy GOLD
+      // Buy DIAMOND
       await expect(zoombies_vip.connect(bob)
       .buy(bob.address, 3, {value: "300000000000000000000"}))
       .to.emit(zoombies_vip, "Buy")
@@ -266,6 +266,32 @@ describe("ZoombiesVIP", function () {
       // verify balance
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
     }); 
+
+    it("Unlock Success", async function () {
+      const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
+
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      
+      // Buy DIAMOND
+      await expect(zoombies_vip.connect(bob)
+      .buy(bob.address, 3, {value: "300000000000000000000"}))
+      .to.emit(zoombies_vip, "Buy")
+      .withArgs(bob.address, 0, 3); //owner, tokenId, DIAMOND
+
+      //verify status
+      expect(await zoombies_vip.getVipStatus(bob.address)).to.equal(3);
+
+      //verify locked
+      expect(await zoombies_vip.locked(0)).to.equal(true);
+
+      //Success unlock 
+      await expect(zoombies_vip.unlock(0))
+      .to.emit(zoombies_vip, "Unlocked")
+      .withArgs(0); //tokenId
+      
+      // verify balance
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
+    });
   })
 
     // functions

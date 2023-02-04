@@ -106,6 +106,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
 
     function unlock(uint256 tokenId) public onlyOwner {
         _tokenLocked[tokenId] = false;
+        address owner = _ownerOf(tokenId);
         emit Unlocked(tokenId);
     }
 
