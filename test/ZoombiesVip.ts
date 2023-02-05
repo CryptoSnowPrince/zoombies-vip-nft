@@ -294,8 +294,6 @@ describe("ZoombiesVIP", function () {
     });
   })
 
-    // functions
-  // unlock
   // block transfer
 
   describe("Award token", function () {
@@ -334,72 +332,61 @@ describe("ZoombiesVIP", function () {
   })
 
   // withdraw
+  describe("Withdraw funds from contract", function () {
+    it("Withdraw Fail - not owner", async function () {
+      const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
 
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      
+      // Buy GOLD
+      await expect(zoombies_vip.connect(bob)
+      .buy(bob.address, 3, {value: "300000000000000000000"}))
+      .to.emit(zoombies_vip, "Buy")
+      .withArgs(bob.address, 0, 3); //owner, tokenId, DIAMOND
+      
+      // verify contract token balance
+      expect(await ethers.provider.getBalance(zoombies_vip.address)).to.equal("300000000000000000000");
+   
+      //FAIL Try to take the money !
+      await expect(zoombies_vip.connect(bob).withdraw())
+      .to.be.revertedWith(
+        "Ownable: caller is not the owner"
+      );
 
-  // describe("Withdrawals", function () {
-  //   describe("Validations", function () {
-  //     it("Should revert with the right error if called too soon", async function () {
-  //       const { lock } = await loadFixture(deployOneYearLockFixture);
+      // verify contract token balance
+      expect(await ethers.provider.getBalance(zoombies_vip.address)).to.equal("300000000000000000000");
+   
+    }); 
 
-  //       await expect(lock.withdraw()).to.be.revertedWith(
-  //         "You can't withdraw yet"
-  //       );
-  //     });
+    it("Withdraw Success", async function () {
+      const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
 
-  //     it("Should revert with the right error if called from another account", async function () {
-  //       const { lock, unlockTime, otherAccount } = await loadFixture(
-  //         deployOneYearLockFixture
-  //       );
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      
+      // Buy GOLD
+      await expect(zoombies_vip.connect(bob)
+      .buy(bob.address, 3, {value: "300000000000000000000"}))
+      .to.emit(zoombies_vip, "Buy")
+      .withArgs(bob.address, 0, 3); //owner, tokenId, DIAMOND
+      
+      // verify contract coin balance
+      expect(await ethers.provider.getBalance(zoombies_vip.address)).to.equal("300000000000000000000");
+   
+      //verify owner coin balance is zero
+      expect(await ethers.provider.getBalance(owner.address)).to.equal("9999989703840625000000");
+   
+      //SUCCESS - take the money !
+      await zoombies_vip.connect(owner).withdraw()
 
-  //       // We can increase the time in Hardhat Network
-  //       await time.increaseTo(unlockTime);
+      // verify contract token balance is empty
+      expect(await ethers.provider.getBalance(zoombies_vip.address)).to.equal(0);
 
-  //       // We use lock.connect() to send a transaction from another account
-  //       await expect(lock.connect(otherAccount).withdraw()).to.be.revertedWith(
-  //         "You aren't the owner"
-  //       );
-  //     });
+      // verify owner coin balance
+      expect(await ethers.provider.getBalance(owner.address)).to.equal("10299989651717038183012");
+   
+   
+    }); 
+  })
 
-  //     it("Shouldn't fail if the unlockTime has arrived and the owner calls it", async function () {
-  //       const { lock, unlockTime } = await loadFixture(
-  //         deployOneYearLockFixture
-  //       );
-
-  //       // Transactions are sent using the first signer by default
-  //       await time.increaseTo(unlockTime);
-
-  //       await expect(lock.withdraw()).not.to.be.reverted;
-  //     });
-  //   });
-
-  //   describe("Events", function () {
-  //     it("Should emit an event on withdrawals", async function () {
-  //       const { lock, unlockTime, lockedAmount } = await loadFixture(
-  //         deployOneYearLockFixture
-  //       );
-
-  //       await time.increaseTo(unlockTime);
-
-  //       await expect(lock.withdraw())
-  //         .to.emit(lock, "Withdrawal")
-  //         .withArgs(lockedAmount, anyValue); // We accept any value as `when` arg
-  //     });
-  //   });
-
-  //   describe("Transfers", function () {
-  //     it("Should transfer the funds to the owner", async function () {
-  //       const { lock, unlockTime, lockedAmount, owner } = await loadFixture(
-  //         deployOneYearLockFixture
-  //       );
-
-  //       await time.increaseTo(unlockTime);
-
-  //       await expect(lock.withdraw()).to.changeEtherBalances(
-  //         [owner, lock],
-  //         [lockedAmount, -lockedAmount]
-  //       );
-  //     });
-  //   });
-  // });
 
 });
