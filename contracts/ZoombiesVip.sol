@@ -69,6 +69,17 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
         return super.tokenURI(tokenId);
     }
 
+    error youShallNotPass();
+
+    // The following is our Soulbound overrides
+    function _transfer(address from, address to, uint256 tokenId) internal override(ERC721) {
+        revert youShallNotPass();
+    }
+
+    function _safeTransfer(address from, address to, uint256 tokenId, bytes memory data) internal virtual override(ERC721) {
+        revert youShallNotPass();
+    }
+
     /* our custom stuff */
 
     enum viptypes{ NONE, VIP, GOLD, DIAMOND }

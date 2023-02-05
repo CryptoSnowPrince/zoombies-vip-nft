@@ -294,8 +294,54 @@ describe("ZoombiesVIP", function () {
     });
   })
 
-  // block transfer
+  // Transfer
+  describe("Transfer - denied by soul binding", function () {
+    it("TransferFrom - Blocked successfully", async function () {
+      const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
 
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      
+      // Buy GOLD
+      await expect(zoombies_vip.connect(bob)
+      .buy(bob.address, 3, {value: "300000000000000000000"}))
+      .to.emit(zoombies_vip, "Buy")
+      .withArgs(bob.address, 0, 3); //owner, tokenId, DIAMOND
+
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
+
+
+      await expect(zoombies_vip.connect(bob).transferFrom(bob.address, alice.address, 0))
+      .to.be.
+      revertedWithCustomError(zoombies_vip, "youShallNotPass")
+
+    });
+
+    it("safeTransferFrom - Blocked successfully", async function () {
+      const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
+
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      
+      // Buy GOLD
+      await expect(zoombies_vip.connect(bob)
+      .buy(bob.address, 3, {value: "300000000000000000000"}))
+      .to.emit(zoombies_vip, "Buy")
+      .withArgs(bob.address, 0, 3); //owner, tokenId, DIAMOND
+
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
+
+      await expect(zoombies_vip.connect(bob).safeTransferFrom(bob.address, alice.address, 0, ""))
+      .to.be.
+      revertedWithCustomError(zoombies_vip, "youShallNotPass")
+
+    });
+  })
+
+  // Burn
+  describe("Burn - block successful", async function () {
+      //TODO
+  })
+
+  //Award
   describe("Award token", function () {
 
     it("Decline Award VIP from not owner", async function () {
@@ -373,7 +419,7 @@ describe("ZoombiesVIP", function () {
       expect(await ethers.provider.getBalance(zoombies_vip.address)).to.equal("300000000000000000000");
    
       //verify owner coin balance is zero
-      expect(await ethers.provider.getBalance(owner.address)).to.equal("9999989703840625000000");
+      expect(await ethers.provider.getBalance(owner.address)).to.equal("9999990124673125000000");
    
       //SUCCESS - take the money !
       await zoombies_vip.connect(owner).withdraw()
@@ -382,7 +428,7 @@ describe("ZoombiesVIP", function () {
       expect(await ethers.provider.getBalance(zoombies_vip.address)).to.equal(0);
 
       // verify owner coin balance
-      expect(await ethers.provider.getBalance(owner.address)).to.equal("10299989651717038183012");
+      expect(await ethers.provider.getBalance(owner.address)).to.equal("10299990072593369340970");
    
    
     }); 
