@@ -322,14 +322,14 @@ describe("ZoombiesVIP", function () {
       expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
       
       // Buy GOLD
-      await expect(zoombies_vip.connect(bob)
-      .buy(bob.address, 3, {value: "300000000000000000000"}))
+      await expect(zoombies_vip
+      .buy(owner.address, 3, {value: "300000000000000000000"}))
       .to.emit(zoombies_vip, "Buy")
-      .withArgs(bob.address, 0, 3); //owner, tokenId, DIAMOND
+      .withArgs(owner.address, 0, 3); //owner, tokenId, DIAMOND
 
-      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
+      expect(await zoombies_vip.balanceOf(owner.address)).to.equal(1);
 
-      await expect(zoombies_vip.connect(bob).safeTransferFrom(bob.address, alice.address, 0, ""))
+      await expect(zoombies_vip["safeTransferFrom(address,address,uint256)"](owner.address, alice.address, 0,))
       .to.be.
       revertedWithCustomError(zoombies_vip, "youShallNotPass")
 
