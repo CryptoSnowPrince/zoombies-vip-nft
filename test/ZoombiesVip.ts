@@ -319,9 +319,9 @@ describe("ZoombiesVIP", function () {
     it("safeTransferFrom - Blocked successfully", async function () {
       const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
 
-      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      expect(await zoombies_vip.balanceOf(owner.address)).to.equal(0);
       
-      // Buy GOLD
+      // Buy DIAMOND
       await expect(zoombies_vip
       .buy(owner.address, 3, {value: "300000000000000000000"}))
       .to.emit(zoombies_vip, "Buy")
@@ -331,14 +331,37 @@ describe("ZoombiesVIP", function () {
 
       await expect(zoombies_vip["safeTransferFrom(address,address,uint256)"](owner.address, alice.address, 0,))
       .to.be.
-      revertedWithCustomError(zoombies_vip, "youShallNotPass")
+      revertedWithCustomError(zoombies_vip, "youShallNotPass");
+
+      expect(await zoombies_vip.balanceOf(owner.address)).to.equal(1);
 
     });
   })
 
   // Burn
   describe("Burn - block successful", async function () {
-      //TODO
+    it("Burn Fail - Stopped successfully", async function () {
+      const { zoombies_vip, owner, bob, alice } = await loadFixture(deployZoombiesVIPCollection);
+
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(0);
+      
+      // Buy DIAMOND
+      await expect(zoombies_vip.connect(bob)
+      .buy(bob.address, 3, {value: "300000000000000000000"}))
+      .to.emit(zoombies_vip, "Buy")
+      .withArgs(bob.address, 0, 3); //owner, tokenId, DIAMOND
+
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
+
+      //Attempt Burn of token
+      //await zoombies_vip.connect(bob).burn(0); //METHOD doesn't exist
+      await expect(zoombies_vip.connect(bob).transferFrom(bob.address, "0x0000000000000000000000000000000000000000", 0))
+      .to.be.
+      revertedWithCustomError(zoombies_vip, "youShallNotPass")
+
+      expect(await zoombies_vip.balanceOf(bob.address)).to.equal(1);
+
+    });
   })
 
   //Award
