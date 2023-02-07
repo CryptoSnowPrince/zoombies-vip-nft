@@ -180,13 +180,17 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
         lock(tokenId);
     }
 
-    function revoke(uint256 tokenId) public onlyOwner {
+    function revoke(address owner) public onlyOwner {
         // get owner
-        address owner = _ownerOf(tokenId);
         require(owner != address(0x0));
+        uint256 tokenId = _tokenOwned[owner];
+        if(tokenId == 0) {
+            revert();
+        }
 
         // revoke NFT
         _burn(tokenId);
+        _tokenOwned[owner] = 0;
         _revoked[owner] = true;
         _vipStatusToOwner[owner] = viptypes.NONE;
         emit Revoked(owner, tokenId);
@@ -206,9 +210,9 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
         return 1 ether;
     }
 
-    function isRevoked(uint256 tokenId) public view returns (bool) {
+    function isRevoked(address owner) public view returns (bool) {
         // returns true if NFT is revoked, false otherwise
-        return _revoked[_ownerOf(tokenId)];
+        return _revoked[owner];
     }
 
     function isUpgraded(uint256 tokenId) public view returns (bool) {
