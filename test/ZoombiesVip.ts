@@ -135,12 +135,14 @@ describe("ZoombiesVIP", function () {
       expect(await zoombies_vip.ownerOf(1)).to.equal(bob.address);
       expect(await zoombies_vip.getVipStatus(bob.address)).to.equal(2);
       expect(await zoombies_vip.getTokenByOwner(bob.address)).to.equal(1);
+      expect(await zoombies_vip.isUpgraded(bob.address)).to.equal(false);
       
       // Fail with no money
       await expect(zoombies_vip.connect(bob).upgrade(bob.address)).to.be.
       revertedWithCustomError(zoombies_vip, "notEnoughFunds")
       .withArgs("Insufficient funds for upgrade");
 
+      expect(await zoombies_vip.isUpgraded(bob.address)).to.equal(false);
     });
 
     it("Upgrade Success - from VIP to DIAMOND", async function () {
@@ -164,15 +166,21 @@ describe("ZoombiesVIP", function () {
       .to.emit(zoombies_vip, "Upgraded")
       .withArgs(bob.address, 1, 2); //owner, tokenId, GOLD
 
+      expect(await zoombies_vip.isUpgraded(bob.address)).to.equal(true);
+
       //upgrade to DIAMOND, paid by owner
       await expect(zoombies_vip.connect(owner)
       .upgrade(bob.address, {value: "150000000000000000000"})) //GOLD token
       .to.emit(zoombies_vip, "Upgraded")
       .withArgs(bob.address, 1, 3); //owner, tokenId, DIAMOND
 
+      expect(await zoombies_vip.isUpgraded(bob.address)).to.equal(true);
+
       // Fail trying to upgrade past DIAMOND
       await expect(zoombies_vip.connect(bob).upgrade(bob.address)).to.be.
       revertedWithCustomError(zoombies_vip, "maxVIPLevel")
+
+      expect(await zoombies_vip.isUpgraded(bob.address)).to.equal(true);
 
     });
 

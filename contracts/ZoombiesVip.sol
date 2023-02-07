@@ -215,9 +215,10 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
         return _revoked[owner];
     }
 
-    function isUpgraded(uint256 tokenId) public view returns (bool) {
+    function isUpgraded(address owner) public view returns (bool) {
         // returns true if NFT is upgraded, false otherwise
-        return _upgraded[_ownerOf(tokenId)] == tokenId;
+        uint256 tokenId = _tokenOwned[owner];
+        return _upgraded[owner] == tokenId;
     }
 
     function withdraw() external onlyOwner {
