@@ -198,7 +198,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
 
     function price() public pure returns (uint256) {
         // returns the price of buying a new NFT
-        return 3 ether;
+        return 1 ether;
     }
 
     function upgradeFee() public pure returns (uint256) {
