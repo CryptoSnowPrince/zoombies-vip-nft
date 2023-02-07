@@ -69,6 +69,9 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
         return super.tokenURI(tokenId);
     }
 
+    // Errors
+    error notEnoughFunds(string reason);
+    error maxVIPLevel();
     error youShallNotPass();
 
     // The following is our Soulbound overrides
@@ -89,6 +92,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
     }
 
     // Variables
+    mapping (address => uint256) private _tokenOwned; //tokenId of the owner
     mapping (address => viptypes) private _vipStatusToOwner; //VIP level of the owner
     mapping (uint256 => bool) private _tokenLocked;
     mapping (address => bool) private _revoked; // keeps track of revoked NFTs
@@ -100,14 +104,14 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
     event Awarded(address indexed owner, uint256 indexed tokenId, uint8 tokenType);
     event Revoked(address indexed owner, uint256 indexed tokenId);
 
-    // Errors
-    error notEnoughFunds(string reason);
-    error maxVIPLevel();
-
     // Functions
 
     function getVipStatus(address owner) public view returns (viptypes tokenType) {
         return _vipStatusToOwner[owner];
+    }
+
+    function getTokenByOwner(address owner) public view returns (uint256 tokenId) {
+        return _tokenOwned[owner];
     }
 
     function lock(uint256 tokenId) internal {
@@ -133,17 +137,19 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
 
         // mint a new NFT and transfer to recipient
         uint256 tokenId = safeMint(recipient, "SET this Ryan");
+        _tokenOwned[recipient] = tokenId;
         _vipStatusToOwner[recipient] = _tokenType;
         emit Buy(recipient, tokenId, uint8(_tokenType));
         lock(tokenId);
     }
 
-    function upgrade(uint256 tokenId) public payable {
+    function upgrade(address owner) public payable {
         // require ownership of NFT
-        //require(_isApprovedOrOwner(msg.sender, tokenId), "Sender does not own NFT");
+       if( _tokenOwned[owner] == 0) {
+            revert();
+       }
 
         //Can't upgrade DIAMOND
-        address owner = _ownerOf(tokenId);
         if(_vipStatusToOwner[owner] == viptypes.DIAMOND){
             revert maxVIPLevel();
         }
@@ -157,6 +163,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
 
         // upgrade NFT
         _vipStatusToOwner[owner] = newLevel;
+        uint256 tokenId = _tokenOwned[owner];
         _upgraded[owner] = tokenId;
         emit Upgraded(owner, tokenId, uint8(_vipStatusToOwner[owner]));
     }
@@ -167,6 +174,7 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
 
         // mint a new NFT and transfer to recipient
         uint256 tokenId = safeMint(recipient, "SET this ryan");
+        _tokenOwned[recipient] = tokenId;
         _vipStatusToOwner[recipient] = _tokenType;
         emit Awarded(recipient, tokenId, uint8(_tokenType));
         lock(tokenId);
@@ -190,12 +198,12 @@ contract ZoombiesVIP is ERC721, ERC721URIStorage, Ownable, EIP712, ERC721Votes, 
 
     function price() public pure returns (uint256) {
         // returns the price of buying a new NFT
-        return 100 ether;
+        return 3 ether;
     }
 
     function upgradeFee() public pure returns (uint256) {
         // returns the upgrade fee for upgrading an NFT
-        return 50 ether;
+        return 1 ether;
     }
 
     function isRevoked(uint256 tokenId) public view returns (bool) {
